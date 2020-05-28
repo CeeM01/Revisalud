@@ -52,9 +52,9 @@ def loggin2():
             if contraseña==contra_medicos[medico]:
                 return redirect(url_for('home_medic',medic=medico)) #Contraseña correcta, todo ok, redirige a homemedic
             else:
-                return render_template('contraseñaincorrecta.html') #Contraseña incorrecta
+                return render_template('contraseñaincorrecta.html') #Contraseña incorrecta **Hacer una para medicos
         else:
-            return render_template('usuarionoregistradologin.html').format(medico)  #Personal no registrado, no está en el diccionario contra_medicos
+            return render_template('usuarionoregistradologin.html').format(medico)  #Personal no registrado, no está en el diccionario contra_medicos **hacer pa medicos
 @app.route('/home_user<cc>') 
 def home_user(cc):
     a=datos_personales[cc][0]+" "+datos_personales[cc][1]  #a es nombres+apellidos, para el saludo inicial :v
@@ -171,3 +171,4 @@ def verificar_datos():
 if __name__ == "__main__":
     app.run(debug=True)
  # Launch the FlaskPy dev server
+ 
