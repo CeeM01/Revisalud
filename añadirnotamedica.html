@@ -1,0 +1,28 @@
+{% extends "layout4.html" %}
+{% block title %}Añadir Nota Medica{% endblock %}
+{% block content%}
+<form action="{{ url_for('notamedica') }}" method="POST">
+    <div class="container p-5">
+        <div class="jumbotron" align="justify">
+            Usuario (cc) <input type="text" name="cedula"><br>
+            <p></p>
+            Motivo: <br>
+            <textarea name="motivo" rows="20" cols="130"></textarea>
+            <p></p>
+            Revisión Por Sitemas:<br>
+            <textarea name="revision" rows="20" cols="130"></textarea>
+            <p></p>
+            Examen: <br>
+            <textarea name="examen" rows="20" cols="130"></textarea>
+            <p></p>
+            Diagnostico: <br>
+            <textarea name="diagnostico" rows="20" cols="130"></textarea>
+            <p></p>
+            Tratamiento:<br>
+            <textarea name="tratamiento" rows="20" cols="130"></textarea>
+            <p></p>
+            <input type='submit' value='Confirmar'>
+          </div>
+    </div>
+    </form>
+{% endblock %}
