@@ -3,7 +3,13 @@ import datetime  #Esta libreria funciona para manejar el tema de fechas
 from datetime import date
 app = Flask(__name__) #Aqui se crea la variable sobre la que estarán el resto de rutas 
 datos_personales={} #Aquí se almacenarán las cc como llaves y una lista de los datos personales como valores
-historia_clinica={} #Aquí irá como llaves las cc y como 
+historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o diccionarios o diccionarios anidados, no recuerdo gg con los datos personales,obvio
+contraseñas={"admin":"1234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
+personal_medico={"12345":"prueba"} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
+contra_medicos={"12345":"12345"} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
+def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una variable fija, esta función determina la edad a partir de la fecha de nacimiento en formato aaaa-mm-dd
+    fecha_de_nacimiento=str(datos_personales[cc][4])  
+    x=fecha_de_nacimiento.split("-")
     ano_a=int(datetime.datetime.now().strftime("%Y"))
     mes_a=int(datetime.datetime.now().strftime("%m"))
     dia_a=int(datetime.datetime.now().strftime("%d"))
