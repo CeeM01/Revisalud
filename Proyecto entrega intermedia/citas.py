@@ -1,13 +1,18 @@
-@app.route('añadircita<medic>')
-def añadir_citas(medic):
-    return render_template('añadircita.html',medic=medic)
-@app.route('/añadircitanice<medic>')
-def añadir_citas2(medic):
-    fecha=str(request.form['fecha'])
-    horai=str(request.form['hora'])
-    horaf=str(request.form['hora2'])
-    lugar=request.form['lugar']
-    nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
-    datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4]}
-    citas_medicos[medic].append(datoscita)
-    return render_template('pruebacita.html').format(datoscitas)
+@app.route('/citasdisponibles<cc>')
+def vercitas(cc):
+    base=[]
+    citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    for x in personal_medico:
+        if citas_medicos[x]!=[]:
+            for i in citas_medicos[x]:
+                if i["paciente"]==None:
+                    time=i["hora_inicial"]+"-"+i["hora_final"]
+                    f=x+i
+                    citas.append(render_template('tablacitas.html', f=f)).format(i["especialidad"],i["fecha"],time,i["medico"])
+    if citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]:
+        t="<h1>No hay citas disponibles</h1>"
+    else:
+        citas.append("</table></container>")
+        t="".join(citas)
+    return render_template('citasdisponibles.html',cc=cc).format(t)
+                    

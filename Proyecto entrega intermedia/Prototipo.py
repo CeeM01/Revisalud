@@ -5,8 +5,8 @@ app = Flask(__name__) #Aqui se crea la variable sobre la que estarán el resto d
 datos_personales={} #Aquí se almacenarán las cc como llaves y una lista de los datos personales como valores
 historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o diccionarios o diccionarios anidados, no recuerdo gg con los datos personales,obvio
 contraseñas={"admin":"1234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
-personal_medico={"12345":"prueba"} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
-contra_medicos={"12345":"12345"} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
+personal_medico={} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
+contra_medicos={} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
 citas_medicos={}
 def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una variable fija, esta función determina la edad a partir de la fecha de nacimiento en formato aaaa-mm-dd
     fecha_de_nacimiento=str(datos_personales[cc][4])  
@@ -68,7 +68,24 @@ def home_user(cc):
             nm.append(render_template('tabla.html').format(x["fecha"],x["nombre"],x["especialidad"],x["motivo"],x["revision"],x["examen"],x["diagnostico"],x["tratamiento"]))    #Usa la plantilla html de las tablas, remplazando los valores por los de la nota **
         nm.append("</table></container>") #Cierre de la tabla
         nm="".join(nm) #Une las sub tablas, por llamarlas de alguna forma
-    return render_template('homeuser.html').format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],historia_clinica[cc]["peso"],historia_clinica[cc]["altura"],nm) #Retorna el home en la que están los datos personales y las notas médicas
+    return render_template('homeuser.html', cc=cc).format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],historia_clinica[cc]["peso"],historia_clinica[cc]["altura"],nm) #Retorna el home en la que están los datos personales y las notas médicas
+@app.route('/citasdisponibles<cc>')
+def vercitas(cc):
+    base=[]
+    citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    for x in personal_medico:
+        if citas_medicos[x]!=[]:
+            for i in range(len(citas_medicos[x])):
+                if citas_medicos[x][i]["paciente"]==None:
+                    time=citas_medicos[x][i]["hora_inicial"]+"-"+citas_medicos[x][i]["hora_final"]
+                    f=x+" "+str(i)
+                    citas.append(render_template('tablacitas.html').format(citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],time,citas_medicos[x][i]["medico"],f))
+    if citas==["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]:
+        t="<h1>No hay citas disponibles</h1>"
+    else:
+        citas.append("</table></container>")
+        t="".join(citas)
+    return render_template('citasdisponibles.html',cc=cc).format(t)
 @app.route('/loggin') #Aqui se viene despues de el loggin de usuario, con las 3 posibilidades
 def loggin():
     cc=request.args['username']
@@ -96,7 +113,7 @@ def añadir_citas2(medic):
     horaf=str(request.form['hora2'])
     lugar=request.form['lugar']
     nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
-    datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4]}
+    datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None}
     citas_medicos[medic].append(datoscita)
     return render_template('pruebacita.html',medic=medic).format(datoscita)
 @app.route('/añadir_nota_medica<medic>') #funcion a la que se accede desde homemedic
