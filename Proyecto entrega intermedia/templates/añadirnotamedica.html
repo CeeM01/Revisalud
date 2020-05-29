@@ -1,10 +1,10 @@
 {% extends "layout4.html" %}
 {% block title %}Añadir Nota Medica{% endblock %}
 {% block content%}
-<form action="{{ url_for('notamedica') }}" method="POST">
+<form action="{{ url_for('notamedica',medic=medic) }}" method="POST">
     <div class="container p-5">
         <div class="jumbotron" align="justify">
-            Confirme usuario personal médico (cc) <input type="text" name="medico"><br>
+            <input type="hidden" name="medico" value="{{ medic }}"><br>
             <p></p>
             Usuario (cc) <input type="text" name="cedula"><br>
             <p></p>

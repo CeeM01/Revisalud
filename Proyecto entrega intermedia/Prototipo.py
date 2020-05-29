@@ -85,23 +85,23 @@ def loggin():
                 return render_template('usuarionoregistradologin.html').format(cc) #No está registrado
 @app.route('/home_medic<medic>')
 def home_medic(medic):
-    return render_template('homemedic.html') #... *De momento no tiene casi nada
-@app.route('/añadir_nota_medica') #funcion a la que se accede desde homemedic
-def agregar_nota_medica():
-        return render_template('añadirnotamedica.html') #html en el que se solicitan los campos para la nota médica
-@app.route('/notamedica',methods=["POST"])
-def notamedica():
+    return render_template('homemedic.html', medic=medic) #... *De momento no tiene casi nada
+@app.route('/añadir_nota_medica<medic>') #funcion a la que se accede desde homemedic
+def agregar_nota_medica(medic):
+        return render_template('añadirnotamedica.html', medic=medic) #html en el que se solicitan los campos para la nota médica
+@app.route('/notamedica<medic>',methods=["POST"])
+def notamedica(medic):
     cc=request.form['cedula'] #La cc del paciente a la que se quiere agregar la nota médica
     if cc in datos_personales: #Verifica que el usuario exista
         fecha=str(date.today())
-      #  medico=request.form['medic']
         especialidad="especialidad" #escpecialidad xdxd
         motivo=request.form['motivo']
         revisionxsistemas=request.form['revision']
         examen=request.form['examen']
         diagnostico=request.form['diagnostico']
         tratamiento=request.form['tratamiento']
-        ccmedico=request.form['medico']
+        #ccmedico=request.form['medico']
+        ccmedico=medic
         especialidad=personal_medico[ccmedico][4]
         nombre=personal_medico[ccmedico][0]+" "+personal_medico[ccmedico][1]
         notamedica={"especialidad":especialidad,"nombre":nombre,"fecha":fecha,"motivo":motivo,"revision":revisionxsistemas,"examen":examen,"diagnostico":diagnostico,"tratamiento":tratamiento} #,"medico":medico}
