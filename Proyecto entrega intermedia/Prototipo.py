@@ -86,6 +86,19 @@ def loggin():
 @app.route('/home_medic<medic>')
 def home_medic(medic):
     return render_template('homemedic.html', medic=medic) #... *De momento no tiene casi nada
+@app.route('/añadircita<medic>')
+def añadir_citas(medic):
+    return render_template('añadircita.html',medic=medic)
+@app.route('/añadircitanice<medic>',methods=["POST"])
+def añadir_citas2(medic):
+    fecha=str(request.form['fecha'])
+    horai=str(request.form['hora'])
+    horaf=str(request.form['hora2'])
+    lugar=request.form['lugar']
+    nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
+    datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4]}
+    citas_medicos[medic].append(datoscita)
+    return render_template('pruebacita.html',medic=medic).format(datoscita)
 @app.route('/añadir_nota_medica<medic>') #funcion a la que se accede desde homemedic
 def agregar_nota_medica(medic):
         return render_template('añadirnotamedica.html', medic=medic) #html en el que se solicitan los campos para la nota médica
@@ -159,6 +172,7 @@ def ver_datosm():
             personal_medico[cc]=(nombre,apellidos,cc,sexo,especialidad)
             contra=nombre[:2]+apellidos[:2]+cc[-4:] #La contraseña del médico corresponde a los 2 primeros digitos de su nombre+ 2 primeros de su apellido+ 4 ultimos de la cc, para la entrega final hay que crear la función de cambio de clave y esas cosas
             contra_medicos[cc]=contra
+            citas_medicos[cc]=[]
             return render_template('medicobiencreado.html') 
         else:
             return render_template('usuariorepetido.html').format(cc)

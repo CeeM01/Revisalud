@@ -19,3 +19,11 @@ for x in citas_medicos:
         citasdisponibles.append(#render de la plantilla para las citas medicas.format(xd xd xd))
 
 
+para crear el html/tabla de cada cita:
+crear un botóncito:
+<input type="radio" id="Masculino" name="sexo" value="Masculino">
+            <label for="Masculino">Masculino</label>
+            <input type="radio" id="Femenino" name="sexo" value="Femenino">
+            <label for="Femenino">Femenino</label> </p>
+            algo así
+para luego remplazar los valores, con ayuda de llaves {}, haciendo que valgan la dirección del booleano, y así este cambie al asignarse...objec
