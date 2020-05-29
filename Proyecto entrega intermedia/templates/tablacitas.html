@@ -5,5 +5,10 @@
 
     <td>{2}</td>
     <td>{3}</td>
-    <td><input type="hidden" name="cita" value={4}><input type="submit" value="Agendar"></td>
+    <td>
+      <form action="/agendarcita{{ cc }}">
+        <input type="hidden" name="f" value={4}><input type="submit" value="Agendar">         
+      </form>
+    </td>
   </tr>
+  
