@@ -7,6 +7,7 @@ historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o d
 contraseñas={"admin":"1234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
 personal_medico={"12345":"prueba"} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
 contra_medicos={"12345":"12345"} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
+citas_medicos={}
 def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una variable fija, esta función determina la edad a partir de la fecha de nacimiento en formato aaaa-mm-dd
     fecha_de_nacimiento=str(datos_personales[cc][4])  
     x=fecha_de_nacimiento.split("-")
@@ -64,7 +65,7 @@ def home_user(cc):
     else:
         nm=['"<container ><table border WIDTH="990" ><tr><th colspan="3">Notas médicas</th>"'] #Esta sería como la cabeza de la tabla
         for x in historia_clinica[cc]["consultas"]: #Cada consulta...
-            nm.append(render_template('tabla.html').format(x["fecha"],"nombre ejemplo","especialidad ej",x["motivo"],x["revision"],x["examen"],x["diagnostico"],x["tratamiento"]))    #Usa la plantilla html de las tablas, remplazando los valores por los de la nota **
+            nm.append(render_template('tabla.html').format(x["fecha"],x["nombre"],x["especialidad"],x["motivo"],x["revision"],x["examen"],x["diagnostico"],x["tratamiento"]))    #Usa la plantilla html de las tablas, remplazando los valores por los de la nota **
         nm.append("</table></container>") #Cierre de la tabla
         nm="".join(nm) #Une las sub tablas, por llamarlas de alguna forma
     return render_template('homeuser.html').format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],historia_clinica[cc]["peso"],historia_clinica[cc]["altura"],nm) #Retorna el home en la que están los datos personales y las notas médicas
@@ -100,7 +101,10 @@ def notamedica():
         examen=request.form['examen']
         diagnostico=request.form['diagnostico']
         tratamiento=request.form['tratamiento']
-        notamedica={"fecha":fecha,"motivo":motivo,"revision":revisionxsistemas,"examen":examen,"diagnostico":diagnostico,"tratamiento":tratamiento} #,"medico":medico}
+        ccmedico=request.form['medico']
+        especialidad=personal_medico[ccmedico][4]
+        nombre=personal_medico[ccmedico][0]+" "+personal_medico[ccmedico][1]
+        notamedica={"especialidad":especialidad,"nombre":nombre,"fecha":fecha,"motivo":motivo,"revision":revisionxsistemas,"examen":examen,"diagnostico":diagnostico,"tratamiento":tratamiento} #,"medico":medico}
         historia_clinica[cc]["consultas"].append(notamedica)
         return render_template('pruebanotamedica.html').format(notamedica) #** Hay que pensar en que que poner, esto lo puse por probar solamente
     else:
@@ -142,7 +146,25 @@ def crear_contraseña(cc):
 @app.route('/crear_usuario')
 def crear_usuario():
     return render_template('crearusuario.html')
-
+@app.route('/crear_medico')
+def crear_medico():
+    return render_template('crearmedico.html')
+def ver_datosm():
+        nombre=request.args['nombres'].strip().upper()
+        apellidos=request.args['apellidos'].strip().upper()
+        cc=request.args['cc'].strip()
+        sexo=request.args['sexo'].strip().upper()
+        especialidad=request.args['especialidad'].strip().upper()
+        if cc not in personal_medico:
+            personal_medico[cc]=(nombre,apellidos,cc,sexo,especialidad)
+            contra=nombre[:2]+apellidos[:2]+cc[-4:] #La contraseña del médico corresponde a los 2 primeros digitos de su nombre+ 2 primeros de su apellido+ 4 ultimos de la cc, para la entrega final hay que crear la función de cambio de clave y esas cosas
+            contra_medicos[cc]=contra
+            return render_template('medicobiencreado.html') 
+        else:
+            return render_template('usuariorepetido.html').format(cc)
+@app.route('/verificar_datosm')
+def verificar_datosm():
+    return ver_datosm()
 def ver_datos():
         nombre=request.args['nombres'].strip().upper()
         apellidos=request.args['apellidos'].strip().upper()

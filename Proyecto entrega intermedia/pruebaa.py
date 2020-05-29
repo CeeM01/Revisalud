@@ -12,7 +12,10 @@ def x():
     c={}
     c["fecha"]=#v fecha
     #...
-    citas disponibles :v
-for x in citas_medicos[#cc medico]:
+    citasdisponibles=[]
+    citasdisponibles.append(#icicio html de)
+for x in citas_medicos:
+    if citas_medicas[x]["disponiblidad"]==True:
+        citasdisponibles.append(#render de la plantilla para las citas medicas.format(xd xd xd))
 
-    
+
