@@ -1,18 +1,12 @@
-@app.route('/citasdisponibles<cc>')
-def vercitas(cc):
-    base=[]
-    citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
-    for x in personal_medico:
-        if citas_medicos[x]!=[]:
-            for i in citas_medicos[x]:
-                if i["paciente"]==None:
-                    time=i["hora_inicial"]+"-"+i["hora_final"]
-                    f=x+i
-                    citas.append(render_template('tablacitas.html', f=f)).format(i["especialidad"],i["fecha"],time,i["medico"])
-    if citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]:
-        t="<h1>No hay citas disponibles</h1>"
+@app.route('/miscitas<cc>')
+def mis_citas(cc):
+    mc=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    if citas_paciente[cc]!=[]
+        for i in range(len(citas_paciente[cc])):
+            time=citas_paciente[cc][i]["hora_inicial"]+"-"+citas_paciente[cc][i]["hora_final"]
+            citas.append(render_template('tablacitas2.html', cc=cc).format(citas_paciente[cc][i]["especialidad"],citas_paciente[cc][i]["fecha"],time,citas_paciente[cc][i][i]["medico"],citas_paciente[cc][i]["codigo"]))
+        mc.append("</table></container>")
+        mc="".join(mc)
     else:
-        citas.append("</table></container>")
-        t="".join(citas)
-    return render_template('citasdisponibles.html',cc=cc).format(t)
-                    
+        mc="<h1>No tienes citas programadas</h1>"
+    return render_template('miscitas.html', cc=cc).format(mc)

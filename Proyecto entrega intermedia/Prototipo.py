@@ -86,8 +86,32 @@ def agendarcita(cc):
     i=int(f[1])
     if citas_medicos[x][i]["paciente"]==None:
         citas_medicos[x][i]["paciente"]=cc
+        codigo="-".join(f)
+        citas_medicos[x][i]["codigo"]=codigo
         citas_pacientes[cc].append(citas_medicos[x][i])
         return render_template('citaagendada.html', cc=cc).format(citas_medicos[x][i]["medico"],citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],citas_medicos[x][i]["hora_inicial"],citas_medicos[x][i]["hora_final"],citas_medicos[x][i]["lugar"])
+@app.route('/miscitas<cc>')
+def mis_citas(cc):
+    mc=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    if citas_pacientes[cc]!=[]:
+        for i in range(len(citas_pacientes[cc])):
+            time=citas_pacientes[cc][i]["hora_inicial"]+"-"+citas_pacientes[cc][i]["hora_final"]
+            mc.append(render_template('tablacitas2.html', cc=cc).format(citas_pacientes[cc][i]["especialidad"],citas_pacientes[cc][i]["fecha"],time,citas_pacientes[cc][i]["medico"],citas_pacientes[cc][i]["codigo"],i))
+        mc.append("</table></container>")
+        mc="".join(mc)
+    else:
+        mc="<h1>No tienes citas programadas</h1>"
+    return render_template('miscitas.html', cc=cc).format(mc)
+@app.route('/cancelarcita<cc>')
+def cancelar_cita(cc):
+    f=request.args['f']
+    f=f.split("-")
+    x=f[0]
+    i=int(f[1])
+    u=request.args['u']
+    citas_medicos[x][i]["paciente"]=None
+    citas_pacientes[cc].pop(int(u))
+    return render_template('citacancelada.html', cc=cc)
 
 @app.route('/historiamedica<cc>')
 def ver_historia_medica(cc):
@@ -153,7 +177,7 @@ def notamedica(medic):
         nombre=personal_medico[ccmedico][0]+" "+personal_medico[ccmedico][1]
         notamedica={"especialidad":especialidad,"nombre":nombre,"fecha":fecha,"motivo":motivo,"revision":revisionxsistemas,"examen":examen,"diagnostico":diagnostico,"tratamiento":tratamiento} #,"medico":medico}
         historia_clinica[cc]["consultas"].append(notamedica)
-        return render_template('pruebanotamedica.html').format(notamedica) #** Hay que pensar en que que poner, esto lo puse por probar solamente
+        return render_template('pruebanotamedica.html', medic=medic) #** Hay que pensar en que que poner, esto lo puse por probar solamente
     else:
             return render_template('usuarionoregistrado.html').format(cc) #Si el usuario no existe... gg **Reusé esta plantilla, hay que hacer una para que no retorne
 @app.route('/admin')      
