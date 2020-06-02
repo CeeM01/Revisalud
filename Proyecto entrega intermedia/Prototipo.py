@@ -7,7 +7,7 @@ historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o d
 contraseñas={"admin":"1234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
 personal_medico={} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
 contra_medicos={} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
-citas_pacientes={}
+citas_pacientes={} 
 citas_medicos={}
 def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una variable fija, esta función determina la edad a partir de la fecha de nacimiento en formato aaaa-mm-dd
     fecha_de_nacimiento=str(datos_personales[cc][4])  
@@ -63,21 +63,39 @@ def home_user(cc):
     return render_template('homeuser.html', cc=cc).format(a) #Retorna el home en la que están los datos personales y las notas médicas
 @app.route('/citasdisponibles<cc>')
 def vercitas(cc):
-    base=[]
-    citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><th>Lugar</th><td></td> </tr>"""]
     for x in personal_medico:
         if citas_medicos[x]!=[]:
             for i in range(len(citas_medicos[x])):
                 if citas_medicos[x][i]["paciente"]==None:
                     time=citas_medicos[x][i]["hora_inicial"]+"-"+citas_medicos[x][i]["hora_final"]
                     f=x+"-"+str(i)
-                    citas.append(render_template('tablacitas.html', cc=cc).format(citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],time,citas_medicos[x][i]["medico"],f))
-    if citas==["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]:
+                    citas.append(render_template('tablacitas.html', cc=cc).format(citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],time,citas_medicos[x][i]["medico"],citas_medicos[x][i]["lugar"],f))
+    if citas==["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><th>Lugar</th><td></td> </tr>"""]:
         t="<h1>No hay citas disponibles</h1>"
     else:
         citas.append("</table></container>")
         t="".join(citas)
     return render_template('citasdisponibles.html',cc=cc).format(t)
+@app.route('/citasmedicasm<medic>')
+def citas_medicas_medic(medic):
+    return render_template('citasmedicasmedic.html',medic=medic)
+@app.route('/vercitasmedic<medic>')
+def ver_citas_medic(medic):
+    if citas_medicos[medic]==[]:
+        citas="<h1>No tiene citas</h1>"
+    else:
+        citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Paciente (CC)</th><th>Lugar</th></tr>"""]
+        for i in range(len(citas_medicos[medic])):
+            time=citas_medicos[medic][i]["hora_inicial"]+"-"+citas_medicos[medic][i]["hora_final"]
+            if citas_medicos[medic][i]["paciente"]==None:
+                paciente="<i>No está reservada</i>"
+            else:
+                paciente=citas_medicos[medic][i]["paciente"]
+            citas.append(render_template('tablacitasmedic.html').format(citas_medicos[medic][i]["especialidad"],citas_medicos[medic][i]["fecha"],time,paciente,citas_medicos[medic][i]["lugar"]))
+        citas.append("</table></container>")
+        citas="".join(citas)
+    return render_template('vercitasmedic.html',medic=medic).format(citas)
 @app.route('/agendarcita<cc>')
 def agendarcita(cc):
     f=request.args['f']
@@ -92,11 +110,11 @@ def agendarcita(cc):
         return render_template('citaagendada.html', cc=cc).format(citas_medicos[x][i]["medico"],citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],citas_medicos[x][i]["hora_inicial"],citas_medicos[x][i]["hora_final"],citas_medicos[x][i]["lugar"])
 @app.route('/miscitas<cc>')
 def mis_citas(cc):
-    mc=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><td></td> </tr>"""]
+    mc=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><th>Lugar</th><td></td> </tr>"""]
     if citas_pacientes[cc]!=[]:
         for i in range(len(citas_pacientes[cc])):
             time=citas_pacientes[cc][i]["hora_inicial"]+"-"+citas_pacientes[cc][i]["hora_final"]
-            mc.append(render_template('tablacitas2.html', cc=cc).format(citas_pacientes[cc][i]["especialidad"],citas_pacientes[cc][i]["fecha"],time,citas_pacientes[cc][i]["medico"],citas_pacientes[cc][i]["codigo"],i))
+            mc.append(render_template('tablacitas2.html', cc=cc).format(citas_pacientes[cc][i]["especialidad"],citas_pacientes[cc][i]["fecha"],time,citas_pacientes[cc][i]["medico"],citas_pacientes[cc][i]["codigo"],i,citas_pacientes[cc][i]["lugar"]))
         mc.append("</table></container>")
         mc="".join(mc)
     else:
@@ -112,21 +130,67 @@ def cancelar_cita(cc):
     citas_medicos[x][i]["paciente"]=None
     citas_pacientes[cc].pop(int(u))
     return render_template('citacancelada.html', cc=cc)
-
 @app.route('/historiamedica<cc>')
 def ver_historia_medica(cc):
     a=datos_personales[cc][0]+" "+datos_personales[cc][1]  #a es nombres+apellidos, para el saludo inicial :v
     notas_medicas=[] #Aqui se agregaran las notas medicas (consultas, ya convertidas a tabla, para luego unirlas)
+    nm=["""<container ><table border WIDTH="990" ><tr><th colspan="3">Notas Médicas</th>"""] #Esta sería como la cabeza de la tabla  
     if historia_clinica[cc]["consultas"]==[]: #Si no se han hecho notas medicas...
-        nm="NO ESPECIFICA" #imprimira no especifica
+        nm.append("""<tr><td colspan="3"><i>No especifica notas médicas</i></td></tr>""") 
     else:
-        nm=['"<container ><table border WIDTH="990" ><tr><th colspan="3">Notas médicas</th>"'] #Esta sería como la cabeza de la tabla
         for x in historia_clinica[cc]["consultas"]: #Cada consulta...
             nm.append(render_template('tabla.html').format(x["fecha"],x["nombre"],x["especialidad"],x["motivo"],x["revision"],x["examen"],x["diagnostico"],x["tratamiento"]))    #Usa la plantilla html de las tablas, remplazando los valores por los de la nota **
+    nm.append("</table></container>") #Cierre de la tabla
+    nm="".join(nm) #Une las sub tablas, por llamarlas de alguna forma
+    antecedentes=["""<container ><table border WIDTH="990" ><tr><th colspan="2">Antecedentes</th></tr><tr><th>Tipo de Antecedente</th><th>Detalle</th></tr>"""]
+    if historia_clinica[cc]["antecedentes"]==[]:
+        antecedentes.append('<td colspan="2"><i>No especifica antecedentes</i></td>')
+    else:
+        for j in historia_clinica[cc]["antecedentes"]:
+            antecedentes.append('<tr><td>{0}</td><td>{1}</td></tr>'.format(j["patologico"],j["detalle"]))
+    antecedentes.append("</table></container>")
+    antecedentes="".join(antecedentes)
+    peso=historia_clinica[cc]["peso"]
+    if peso==None:
+        peso="<i>No especifica</i>"
+    talla=historia_clinica[cc]["altura"]
+    if talla==None:
+        talla="<i>No especifica</i>"
+    return render_template('verhistoriamedica.html', cc=cc).format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],peso,talla,nm,antecedentes)
+@app.route('/solicitarhistoria<medic>')
+def solicitar_historia(medic):
+    return render_template('pedirhistoria.html', medic=medic)
+@app.route('/verhistoriaclinica<medic>')
+def ver_historia_clinica(medic):
+    cc=request.args['username']
+    if cc in datos_personales:
+        a=datos_personales[cc][0]+" "+datos_personales[cc][1]  #a es nombres+apellidos, para el saludo inicial :v
+        notas_medicas=[] #Aqui se agregaran las notas medicas (consultas, ya convertidas a tabla, para luego unirlas)
+        nm=["""<container ><table border WIDTH="990" ><tr><th colspan="3">Notas Médicas</th>"""] #Esta sería como la cabeza de la tabla  
+        if historia_clinica[cc]["consultas"]==[]: #Si no se han hecho notas medicas...
+            nm.append("""<tr><td colspan="3"><i>No especifica notas médicas</i></td></tr>""") 
+        else:
+            for x in historia_clinica[cc]["consultas"]: #Cada consulta...
+                nm.append(render_template('tabla.html').format(x["fecha"],x["nombre"],x["especialidad"],x["motivo"],x["revision"],x["examen"],x["diagnostico"],x["tratamiento"]))    #Usa la plantilla html de las tablas, remplazando los valores por los de la nota **
         nm.append("</table></container>") #Cierre de la tabla
         nm="".join(nm) #Une las sub tablas, por llamarlas de alguna forma
-
-    return render_template('verhistoriamedica.html', cc=cc).format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],historia_clinica[cc]["peso"],historia_clinica[cc]["altura"],nm)
+        antecedentes=["""<container ><table border WIDTH="990" ><tr><th colspan="2">Antecedentes</th></tr><tr><th>Tipo De Antecedente</th><th>Detalle</th></tr>"""]
+        if historia_clinica[cc]["antecedentes"]==[]:
+            antecedentes.append('<td colspan="2"><i>No especifica antecedentes</i></td>')
+        else:
+            for j in historia_clinica[cc]["antecedentes"]:
+                antecedentes.append('<tr><td>{0}</td><td>{1}</td></tr>'.format(j["patologico"],j["detalle"]))
+        antecedentes.append("</table></container>")
+        antecedentes="".join(antecedentes)
+        peso=historia_clinica[cc]["peso"]
+        if peso==None:
+            peso="<i>No especifica</i>"
+        talla=historia_clinica[cc]["altura"]
+        if talla==None:
+            talla="<i>No especifica</i>"
+        return render_template('verhistoriamedica-medic.html', cc=cc).format(a,cc,datos_personales[cc][3],datos_personales[cc][4],edad_usuario(datos_personales,cc),datos_personales[cc][5],datos_personales[cc][6],datos_personales[cc][7],peso,talla,nm,antecedentes)
+    else:
+        return render_template('pacientenoregistrado.html',medic=medic).format(cc)
 @app.route('/loggin') #Aqui se viene despues de el loggin de usuario, con las 3 posibilidades
 def loggin():
     cc=request.args['username']
@@ -134,6 +198,7 @@ def loggin():
     if cc=="admin" and contraseña=="1234":
         return home_admin()
     else:
+        
         if cc in datos_personales:
             if contraseña==contraseñas[cc]:
                 return redirect(url_for('home_user',cc=cc)) #todo ok
@@ -143,7 +208,11 @@ def loggin():
                 return render_template('usuarionoregistradologin.html').format(cc) #No está registrado
 @app.route('/home_medic<medic>')
 def home_medic(medic):
-    return render_template('homemedic.html', medic=medic) #... *De momento no tiene casi nada
+    nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
+    return render_template('homemedic.html', medic=medic).format(nomape) #... *De momento no tiene casi nada
+@app.route('/historiaclinica<medic>')
+def historia_clinica_(medic):
+    return render_template('historiaclinica.html',medic=medic)
 @app.route('/añadircita<medic>')
 def añadir_citas(medic):
     return render_template('añadircita.html',medic=medic)
@@ -152,11 +221,48 @@ def añadir_citas2(medic):
     fecha=str(request.form['fecha'])
     horai=str(request.form['hora'])
     horaf=str(request.form['hora2'])
-    lugar=request.form['lugar']
+    lugar=request.form['lugar'].strip().upper()
     nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
     datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None}
     citas_medicos[medic].append(datoscita)
     return render_template('pruebacita.html',medic=medic).format(datoscita)
+@app.route('/modificarhistoriaclinica<medic>')
+def modificar_citas_medicas(medic):
+    return render_template('modificarhistoriaclinica.html', medic=medic)
+@app.route('/editartallaypeso<medic>')
+def editar_talla_peso(medic):
+    return render_template('editartallaypeso.html', medic=medic)
+@app.route('/cambiartallaypeso<medic>')
+def cambiar_peso_talla(medic):
+    cc=request.args['cedula']
+    if cc in datos_personales:
+        peso=request.args['peso']
+        talla=request.args['talla']
+        if peso!="":
+            historia_clinica[cc]["peso"]=peso
+        if talla!="":
+            historia_clinica[cc]["altura"]=talla
+        return render_template('tallaypesocambiados.html',medic=medic)
+    else:
+        return render_template('pacientenoregistrado.html',medic=medic).format(cc)
+@app.route('/añadirantecedente<medic>')
+def añadir_antecedente(medic):
+    return render_template('añadirantecedente.html',medic=medic)
+@app.route('/antecedenteañadido<medic>')
+def antecedente_añadido(medic):
+    cc=request.args['cedula']
+    if cc in datos_personales:
+        patologico=request.args['patologico']
+        detalle=request.args['detalle']
+        if patologico!="":
+            dic={"patologico":patologico,"detalle":detalle}
+            historia_clinica[cc]["antecedentes"].append(dic)
+            return render_template('antecedenteañadido.html', medic=medic) 
+        else:
+            return render_template('parametrovaciomedic.html', medic=medic)
+    else:
+        return render_template('pacientenoregistrado.html',medic=medic).format(cc)
+    
 @app.route('/añadir_nota_medica<medic>') #funcion a la que se accede desde homemedic
 def agregar_nota_medica(medic):
         return render_template('añadirnotamedica.html', medic=medic) #html en el que se solicitan los campos para la nota médica
@@ -192,11 +298,14 @@ def validar_datos2():
         fecha_nacimiento=str(request.args['fecha_nacimiento'])
         edad=int(request.args['edad'].strip())
         if cc in contraseñas and cc in datos_personales:
-            tupla=datos_personales[cc]
-            if tupla[0]==nombre and tupla[1]==apellidos and tupla[3]==sexo and tupla[4]==fecha_nacimiento and edad==edad_usuario(datos_personales,cc): #Aquí se comparan los datos ingresados por el usuario con los del sistema (añadidos por el admin)
-                return redirect(url_for("crear_contraseña", cc=cc)) #Si coinciden, permite crear contraseña **
-            else:
-                return render_template('datosincorrectos.html') #**
+            if contraseñas[cc]==None:
+                tupla=datos_personales[cc]
+                if tupla[0]==nombre and tupla[1]==apellidos and tupla[3]==sexo and tupla[4]==fecha_nacimiento and edad==edad_usuario(datos_personales,cc): #Aquí se comparan los datos ingresados por el usuario con los del sistema (añadidos por el admin)
+                    return redirect(url_for("crear_contraseña", cc=cc)) #Si coinciden, permite crear contraseña **
+                else:
+                    return render_template('datosincorrectos.html') #**
+            else: 
+                return render_template("usuarioyaregistrado.html").format(cc)
         else:
             return render_template('usuarionoregistrado.html').format(cc) #Si el usuario no ha sido registrado por el admin
 
@@ -249,7 +358,7 @@ def ver_datos():
         if cc not in datos_personales:
             datos_personales[cc]=(nombre,apellidos,cc,sexo,fecha_nacimiento,telefono,ciudad_residencia,residencia)
             contraseñas[cc]=None
-            historia_clinica[cc]={"peso":None,"altura":None,"antecedentes":None,"consultas":[]}
+            historia_clinica[cc]={"peso":None,"altura":None,"antecedentes":[],"consultas":[]}
             citas_pacientes[cc]=[]
             return render_template('usuariocreadobien.html')
         else:

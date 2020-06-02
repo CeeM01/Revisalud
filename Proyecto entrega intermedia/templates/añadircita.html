@@ -4,6 +4,8 @@
 <form action="{{ url_for('añadir_citas2',medic=medic) }}" method="POST">
     <div class="container p-5">
         <div class="jumbotron" align="justify">
+            <h1 >Añada una cita de acuerdo a su disponibilidad</h1>
+            <hr class="my-4">
             <input type="hidden" name="medico" value="{{ medic }}">
             Fecha: <input type="date" name="fecha"><br>
             <p></p>

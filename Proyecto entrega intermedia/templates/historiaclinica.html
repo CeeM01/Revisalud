@@ -1,12 +1,16 @@
-{% extends "layout3.html" %}
+{% extends "layout4.html" %}
+{% block title %}Historia Clínica{% endblock %}
 {% block content%}
-    <div class="container p-5">
-        <div class="jumbotron" >
-            <h1 class="display-4">Historia Clinica</h1>
-            <hr class="my-4">
-            <p>Nombre: {} </p>
-            <p>Edad: {1}</p>
-            <p>Ciudad de residencia: {2}</p>
-        </div>
+<div class="container p-5">
+    <div class="jumbotron" >
+        <h1 class="display-4"><b>Modificar Historia Clínica</b></h1>
+        <hr class="my-4">
+        <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/modificarhistoriaclinica{{ medic }}" role="button">Modificar Historia Clínica</a>
+            <a class="btn btn-primary btn-lg" href="/solicitarhistoria{{ medic }}" role="button">Ver Historia Clínica</a>
+            
+        <p></p>
     </div>
+</div>
 {% endblock %}

@@ -4,24 +4,25 @@
 <form action="{{ url_for('notamedica',medic=medic) }}" method="POST">
     <div class="container p-5">
         <div class="jumbotron" align="justify">
+            <h2 class="display-4"><b>Añadir Nota Medica</b></h2>
             <input type="hidden" name="medico" value="{{ medic }}"><br>
             <p></p>
-            Usuario (cc) <input type="text" name="cedula"><br>
+            <b>Usuario (cc)</b> <input type="text" name="cedula"><br>
             <p></p>
-            Motivo: <br>
-            <textarea name="motivo" rows="20" cols="130"></textarea>
+            <b>Motivo:</b> <br>
+            <textarea name="motivo" rows="7" cols="135"></textarea>
             <p></p>
-            Revisión Por Sitemas:<br>
-            <textarea name="revision" rows="20" cols="130"></textarea>
+            <b>Revisión Por Sistemas:</b><br>
+            <textarea name="revision" rows="7" cols="130"></textarea>
             <p></p>
-            Examen: <br>
-            <textarea name="examen" rows="20" cols="130"></textarea>
+            <b>Examen:</b> <br>
+            <textarea name="examen" rows="7" cols="130"></textarea>
             <p></p>
-            Diagnostico: <br>
-            <textarea name="diagnostico" rows="20" cols="130"></textarea>
+            <b>Diagnostico:</b> <br>
+            <textarea name="diagnostico" rows="7" cols="130"></textarea>
             <p></p>
-            Tratamiento:<br>
-            <textarea name="tratamiento" rows="20" cols="130"></textarea>
+            <b>Tratamiento:</b><br>
+            <textarea name="tratamiento" rows="7" cols="130"></textarea>
             <p></p>
             <input type='submit' value='Confirmar'>
           </div>

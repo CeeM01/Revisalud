@@ -1,4 +1,4 @@
-{% extends "layout2.html" %}
+{% extends "layout2home.html" %}
 {% block title %}Home-Admin{% endblock %}
 {% block content%}
 </form>
@@ -7,8 +7,13 @@
         <div class="jumbotron" >
             <h1 class="display-4">Bienvenido Admin</h1>
             <hr class="my-4">
+            <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/crear_usuario" role="button">Añadir Usuario</a>
+            <a class="btn btn-primary btn-lg" href="/crear_medico" role="button">Añadir Personal Médico</a>
             <p> </p>
         </div>
     </div>
 </form>
 {% endblock %}
+<a class="nav-link" href="/crear_usuario">Añadir Usuario</a>

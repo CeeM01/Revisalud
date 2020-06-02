@@ -1,11 +1,15 @@
-{% extends "layout3.html" %}
+{% extends "layout3home.html" %}
 {% block title %}Home{% endblock %}
 {% block content%}
     <div class="container p-5">
         <div class="jumbotron" >
-            <h1 class="display-4">Bienvenido a su página de incio {0} </h1>
+            <h1 class="display-4">Bienvenido(a), <b>{0}</b>  </h1>
             <hr class="my-4">
-            <p>Gracias por preferir a ReviSalud </p>
+            <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/citasdisponibles{{ cc }}" role="button">Ver Citas Disponibles y Agendar</a>
+            <a class="btn btn-primary btn-lg" href="/historiamedica{{ cc }}" role="button">Ver Historia Médica</a>
+            <a class="btn btn-primary btn-lg" href="/miscitas{{ cc }}" role="button">Ver Sus Citas Agendadas</a>
         </div>
     </div>
 {% endblock %}
