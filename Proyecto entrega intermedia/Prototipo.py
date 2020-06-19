@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template,redirect,url_for #Se importan las liberias de flask   
 import datetime  #Esta libreria funciona para manejar el tema de fechas
-from datetime import date
+from datetime import date, time,datetime,timedelta
 app = Flask(__name__) #Aqui se crea la variable sobre la que estarán el resto de rutas 
 datos_personales={} #Aquí se almacenarán las cc como llaves y una lista de los datos personales como valores
 historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o diccionarios o diccionarios anidados, no recuerdo gg con los datos personales,obvio
@@ -9,12 +9,33 @@ personal_medico={} #Aquí irían los datos de cada médico, que el admin agregar
 contra_medicos={} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
 citas_pacientes={} 
 citas_medicos={}
+lugares={}
+especialidades={}
+hora_inicio_jornada="00:00"
+hora_final_jornada="23:59"
+def sumatime(hora1,tiempo):
+    hora1=hora1.split(":")
+    h1=int(hora1[0])
+    m1=int(hora1[1])
+    m=m1+int(tiempo)
+    mn=m%60
+    hn=h1+(m//60)
+    if mn<10:
+        mn="0"+str(mn)
+    if hn<10:
+        hn="0"+str(hn)
+    return str(hn)+":"+str(mn)
+def sumadia(fecha,fact):
+    fecha = datetime.strptime(fecha, "%Y-%m-%d")
+    fecha+= timedelta(days=fact)
+    return str(fecha).split()[0]
 def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una variable fija, esta función determina la edad a partir de la fecha de nacimiento en formato aaaa-mm-dd
     fecha_de_nacimiento=str(datos_personales[cc][4])  
     x=fecha_de_nacimiento.split("-")
-    ano_a=int(datetime.datetime.now().strftime("%Y"))
-    mes_a=int(datetime.datetime.now().strftime("%m"))
-    dia_a=int(datetime.datetime.now().strftime("%d"))
+    a=str(date.today()).split("-")
+    ano_a=int(a[0])
+    mes_a=int(a[1]) 
+    dia_a=int(a[2])
     dia=int(x[2])
     mes=int(x[1])
     ano=int(x[0])
@@ -31,6 +52,23 @@ def edad_usuario(datos_personales,cc): #Ya que la edad del usuario no será una 
             return int(a)
     else:
         return int(a-1)
+def horario_valido(medic,fecha,hora_i,hora_f):
+    hora=str(datetime.now().hour)+":"+str(datetime.now().minute)
+    if hora_i<hora_inicio_jornada or hora_i>hora_final_jornada or hora_f<hora_inicio_jornada or hora_f>hora_final_jornada:
+        return False
+    if fecha<= str(date.today()):
+        if fecha==str(date.today()):
+            if hora_i<=hora:
+                return False    
+        else:
+            return False
+    if hora_i>=hora_f:
+        return False
+    for x in citas_medicos[medic]:
+        if x["fecha"]==fecha:
+            if (x["hora_inicial"]<hora_f and x["hora_final"]>=hora_f) or (x["hora_inicial"]<=hora_i and x["hora_final"]>hora_i):
+                return False
+    return True
 @app.route('/') # En la ruta "/" estará la pagina inicial 
 def home():
     return render_template('home.html') #Aqui se importa el html de home
@@ -57,7 +95,7 @@ def loggin2():
                 return render_template('contraseñaincorrecta.html') #Contraseña incorrecta **Hacer una para medicos
         else:
             return render_template('usuarionoregistradologin.html').format(medico)  #Personal no registrado, no está en el diccionario contra_medicos **hacer pa medicos
-@app.route('/home_user<cc>') 
+@app.route('/home_user<cc>')
 def home_user(cc):
     a=datos_personales[cc][0]+" "+datos_personales[cc][1]
     return render_template('homeuser.html', cc=cc).format(a) #Retorna el home en la que están los datos personales y las notas médicas
@@ -96,6 +134,50 @@ def ver_citas_medic(medic):
         citas.append("</table></container>")
         citas="".join(citas)
     return render_template('vercitasmedic.html',medic=medic).format(citas)
+@app.route('/generarcitas<medic>')
+def generar_citas(medic):
+    return render_template('generarcitas.html',medic=medic)
+@app.route('/citasgeneradas<medic>',methods=["POST"])
+def citas_generadas(medic):
+    horai= str(request.form['horai'])#Aqui tomaría la hora inicial
+    fecha= str(request.form['fecha'])#fecha inicial
+    fechafin=str(request.form['fechafin']) #Fecha fin xd
+    limite= str(request.form['limite'])#hora final
+    intervalo=int(request.form['intervalo'])#tiempo xd
+    lugar= str(request.form['lugar'])#Lugar xd
+    validas=[]
+    invalidas=[]
+    while fecha<=fechafin:
+        hora_i=horai
+        while hora_i<limite and hora_i<=hora_final_jornada and hora_i>=hora_inicio_jornada and sumatime(hora_i,intervalo)<=limite:
+            horaf=sumatime(hora_i,intervalo) #Esta funcion esta en otro .py
+            if horario_valido(medic,fecha,hora_i,horaf) and horaf<=limite:
+                nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
+                datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":hora_i,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None}
+                validas.append(render_template('validosinvalidos.html').format(fecha,hora_i,horaf)) 
+                citas_medicos[medic].append(datoscita)
+            else:
+                invalidas.append(render_template('validosinvalidos.html').format(fecha,hora_i,horaf))
+            hora_i=horaf
+        fecha=sumadia(fecha,1)
+    if len(invalidas)>0:
+        if len(validas)>0:
+            p1=["<table border WIDTH="990">",render_template('validosinvalidos.html').format("<b>Fecha</b>","<b>Hora Inicio</b>","<b>Hora Final</b>")] #Hay que crear una "base" y una "tapa"
+            for x in invalidas:
+                p1.append(x) #Crear base, tabla que diga error, sla cita no ha sido creada pues su horario no es válido
+            p2=["<table border WIDTH="990">",render_template('validosinvalidos.html').format("<b>Fecha</b>","<b>Hora Inicio</b>","<b>Hora Final</b>")] #Hay que crear una "base" y una "tapa"
+            for x in validas:
+                p2.append(x)
+            p1="".join(p1)+"</table>"
+            p2="".join(p2)+"</table>"
+            return render_template('citasgeneradasinvalidas.html',medic=medic).format(p2,p1) #Template con dos jumbotrones xd
+        else:
+            return render_template('citasinvalidas.html',medic=medic)
+    else:
+        return render_template('citasgeneradas.html',medic=medic) #Un jumbotron que diga todas las citas fueron generadas con éxito
+
+    
+
 @app.route('/agendarcita<cc>')
 def agendarcita(cc):
     f=request.args['f']
@@ -130,8 +212,8 @@ def cancelar_cita(cc):
     citas_medicos[x][i]["paciente"]=None
     citas_pacientes[cc].pop(int(u))
     return render_template('citacancelada.html', cc=cc)
-@app.route('/historiamedica<cc>')
-def ver_historia_medica(cc):
+@app.route('/historiamedica<medic>')
+def ver_historia_medica(medic,cc):
     a=datos_personales[cc][0]+" "+datos_personales[cc][1]  #a es nombres+apellidos, para el saludo inicial :v
     notas_medicas=[] #Aqui se agregaran las notas medicas (consultas, ya convertidas a tabla, para luego unirlas)
     nm=["""<container ><table border WIDTH="990" ><tr><th colspan="3">Notas Médicas</th>"""] #Esta sería como la cabeza de la tabla  
@@ -221,11 +303,14 @@ def añadir_citas2(medic):
     fecha=str(request.form['fecha'])
     horai=str(request.form['hora'])
     horaf=str(request.form['hora2'])
-    lugar=request.form['lugar'].strip().upper()
-    nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
-    datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None}
-    citas_medicos[medic].append(datoscita)
-    return render_template('pruebacita.html',medic=medic).format(datoscita)
+    if horario_valido(medic,fecha,horai,horaf):
+        lugar=request.form['lugar'].strip().upper()
+        nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
+        datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None}
+        citas_medicos[medic].append(datoscita)
+        return render_template('pruebacita.html',medic=medic).format(datoscita)
+    else:
+        return "Hola"#render_template() #Crear template que diga horario no válido
 @app.route('/modificarhistoriaclinica<medic>')
 def modificar_citas_medicas(medic):
     return render_template('modificarhistoriaclinica.html', medic=medic)

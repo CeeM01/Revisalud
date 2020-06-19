@@ -1,0 +1,6 @@
+Crear funcion admin (tipos de especialidades xd)
+Filtros para buscar citas
+Generador automático de citas #3/4 falta templates y pruebas, y funcion xd
+cancelador citas (medico)
+opciones administrativas (admin)
+parte gráfica
