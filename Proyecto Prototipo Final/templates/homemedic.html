@@ -1,0 +1,17 @@
+{% extends "layout4home.html" %}
+{% block title %}Home-Personal Medico{% endblock %}
+{% block content%}
+<div class="container p-5">
+    <div class="jumbotron" >
+        <h1 class="display-4"><b>Bienvenido(a), {0}</b></h1>
+        <hr class="my-4">
+        <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/historiaclinica{{ medic }}" role="button">Historia Clínica</a>
+            <a class="btn btn-primary btn-lg" href="/citasmedicasm{{ medic }}" role="button">Ver y Crear Citas</a>
+            
+            <a class="btn btn-primary btn-lg" href="/home_medic{{ medic }}/cambiarcontraseña" role="button">Cambiar Contraseña</a>
+        <p></p>
+    </div>
+</div>
+{% endblock %}

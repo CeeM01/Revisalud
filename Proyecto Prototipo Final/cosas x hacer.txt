@@ -1,0 +1,3 @@
+cancelador citas (medico)
+opciones administrativas (admin)
+parte gráfica 

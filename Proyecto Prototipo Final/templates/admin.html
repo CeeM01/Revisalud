@@ -1,0 +1,23 @@
+{% extends "layout2home.html" %}
+{% block title %}Home-Admin{% endblock %}
+{% block content%}
+</form>
+<form action="/crear_usuario">
+    <div class="container p-5">
+        <div class="jumbotron" >
+            <h1 class="display-4">Bienvenido Admin</h1>
+            <hr class="my-4">
+            <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/admin/crear_usuario" role="button" style="margin-right:20px;">Añadir Usuario</a>
+            <a class="btn btn-primary btn-lg" href="/crear_medico" role="button" style="margin-right:20px;">Añadir Personal Médico</a>
+            <a class="btn btn-primary btn-lg" href="/añadirlugar" role="button" style="margin-right:20px;">Añadir Lugar</a>
+            <a class="btn btn-primary btn-lg" href="/añadirespecialidad" role="button" style="margin-right:20px;">Añadir Especialidad</a>
+            <p> </p>
+            <a class="btn btn-primary btn-lg" href="/admin/cambiarcontraseña" role="button" style="margin-right:20px;">Cambiar Contraseña</a>
+            <p></p>
+        </div>
+    </div>
+</form>
+{% endblock %}
+<a class="nav-link" href="/crear_usuario">Añadir Usuario</a>

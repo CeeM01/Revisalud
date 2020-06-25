@@ -1,0 +1,17 @@
+{% extends "layout4.html" %}
+{% block title %}Historia Clínica{% endblock %}
+{% block content%}
+<div class="container p-5">
+    <div class="jumbotron" >
+        <h1 class="display-4"><b>Modificar Historia Clínica</b></h1>
+        <hr class="my-4">
+        <h2>¿Que Quieres Hacer?</h2>
+            <p></p>
+            <a class="btn btn-primary btn-lg" href="/añadir_nota_medica{{ medic }}" role="button">Añadir nota médica</a>
+            <a class="btn btn-primary btn-lg" href="/añadirantecedente{{ medic }}" role="button">Añadir Antecedente</a>
+            <a class="btn btn-primary btn-lg" href="/editartallaypeso{{ medic }}" role="button">Editar Talla y Peso</a>
+            
+        <p></p>
+    </div>
+</div>
+{% endblock %}
