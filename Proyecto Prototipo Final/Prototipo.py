@@ -4,12 +4,12 @@ from datetime import date, time,datetime,timedelta
 app = Flask(__name__) #Aqui se crea la variable sobre la que estarán el resto de rutas 
 datos_personales={} #Aquí se almacenarán las cc como llaves y una lista de los datos personales como valores
 historia_clinica={} #Aquí irá como llaves las cc y como valores una listas o diccionarios o diccionarios anidados, no recuerdo gg con los datos personales,obvio
-contraseñas={"admin":"1234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
+contraseñas={"admin":"12341234"} #Aqui estarían almacenadas las contraseñas de los usuarios, también la del admin
 personal_medico={} #Aquí irían los datos de cada médico, que el admin agregaría, pero de momento, lo tengo así para no complicarme registrando un médico cada vez que quiero probar algo
 contra_medicos={} #Aquí iria la contraseña de los médicos funcionando de forma literalmente identica a la de los users
-citas_pacientes={} 
+citas_pacientes={}
 citas_medicos={}
-lugares={}
+lugares={"SALA 1":{}}
 especialidades={"MEDICO GENERAL":True}
 hora_inicio_jornada="00:00"
 hora_final_jornada="23:59"
@@ -25,12 +25,14 @@ def sumatime(hora1,tiempo):
     if hn<10:
         hn="0"+str(hn)
     return str(hn)+":"+str(mn)
-def filtro(medico,fecha,especialidad,dicc):
+def filtro(medico,fecha,fechaf,especialidad,dicc):
     if medico!="" and dicc["medico"]!=medico:
         return False
     if especialidad!="" and dicc["especialidad"]!=especialidad:
         return False
-    if fecha!="" and dicc["fecha"]!=fecha:
+    if fecha!="" and dicc["fecha"]<fecha:
+        return False
+    if fechaf!="" and dicc["fecha"]>fechaf:
         return False
     return True
 def sumadia(fecha,fact):
@@ -69,7 +71,7 @@ def estado_horario(fecha,horai):
         else:
             return False
     return True
-def horario_valido(medic,fecha,hora_i,hora_f):
+def horario_valido(medic,fecha,hora_i,hora_f,lugar):
     hora=str(datetime.now().hour)+":"+str(datetime.now().minute)
     if hora_i<hora_inicio_jornada or hora_i>hora_final_jornada or hora_f<hora_inicio_jornada or hora_f>hora_final_jornada:
         return False
@@ -85,6 +87,30 @@ def horario_valido(medic,fecha,hora_i,hora_f):
         if x["fecha"]==fecha:
             if (x["hora_inicial"]<hora_f and x["hora_final"]>=hora_f) or (x["hora_inicial"]<=hora_i and x["hora_final"]>hora_i):
                 return False
+    if fecha in lugares[lugar]:
+        for horas in range(len(lugares[lugar][fecha])):
+            if (hora_i<lugares[lugar][fecha][horas]["fin"] and lugares[lugar][fecha][horas]["inicio"]<=hora_i) or (hora_f<=lugares[lugar][fecha][horas]["fin"] and lugares[lugar][fecha][horas]["inicio"]<hora_f):
+                return False
+    return True
+def agendamientovalido(cc,datoscita):
+    horainicial=datoscita["hora_inicial"]
+    horafinal=datoscita["hora_final"]
+    fecha=datoscita["fecha"]
+    especialidad=datoscita["especialidad"]
+    c=0
+    for cita in citas_pacientes[cc]:
+        if cita["estado"]==True:
+            if estado_horario(fecha,horainicial):
+                c+=1
+                if c==3:
+                    return False
+                if fecha==cita["fecha"] and ((cita["hora_inicial"]<=horainicial and horainicial<cita["hora_final"]) or (cita["hora_inicial"]<horafinal and horafinal<=cita["hora_final"])):
+                    return False
+                if cita["especialidad"]==especialidad:
+                    return False
+            else:
+                cita["estado"]=False
+            
     return True
 @app.route('/') # En la ruta "/" estará la pagina inicial 
 def home():
@@ -145,6 +171,7 @@ def citas_filtradas(cc):
     if request.method=="POST":
         medico=request.form['medic']
         fecha=request.form['fecha']
+        fechaf=request.form['fechaf']
         especialidad=request.form['especialidad']
         citas=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><th>Lugar</th><td></td> </tr>"""]
         diccionario={}
@@ -154,7 +181,7 @@ def citas_filtradas(cc):
                     if citas_medicos[x][i]["estado"]:
                         if not estado_horario(citas_medicos[x][i]["fecha"],citas_medicos[x][i]["hora_inicial"]):
                             citas_medicos[x][i]["estado"]=False
-                    if citas_medicos[x][i]["paciente"]==None and citas_medicos[x][i]["estado"] and filtro(medico,fecha,especialidad,citas_medicos[x][i]):
+                    if citas_medicos[x][i]["paciente"]==None and citas_medicos[x][i]["estado"] and filtro(medico,fecha,fechaf,especialidad,citas_medicos[x][i]):
                         time=citas_medicos[x][i]["hora_inicial"]+"-"+citas_medicos[x][i]["hora_final"]
                         f=x+"-"+str(i)
                         llave=citas_medicos[x][i]["fecha"]+time+citas_medicos[x][i]["especialidad"]
@@ -234,7 +261,7 @@ def citas_generadas(medic):
         hora_i=horai
         while hora_i<limite and hora_i<=hora_final_jornada and hora_i>=hora_inicio_jornada and sumatime(hora_i,intervalo)<=limite:
             horaf=sumatime(hora_i,intervalo) #Esta funcion esta en otro .py
-            if horario_valido(medic,fecha,hora_i,horaf) and horaf<=limite:
+            if horario_valido(medic,fecha,hora_i,horaf,lugar) and horaf<=limite:
                 nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
                 datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":hora_i,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None,"estado":True}
                 validas.append(render_template('validosinvalidos.html').format(fecha,hora_i,horaf)) 
@@ -267,14 +294,14 @@ def agendarcita(cc):
     f=f.split("-")
     x=f[0]
     i=int(f[1])
-    if citas_medicos[x][i]["paciente"]==None and citas_medicos[x][i]["estado"]==True:
+    if citas_medicos[x][i]["paciente"]==None and citas_medicos[x][i]["estado"]==True and agendamientovalido(cc,citas_medicos[x][i],): #aqui voy xd
         citas_medicos[x][i]["paciente"]=cc
         codigo="-".join(f)
         citas_medicos[x][i]["codigo"]=codigo
         citas_pacientes[cc].append(citas_medicos[x][i])
         return render_template('citaagendada.html', cc=cc).format(citas_medicos[x][i]["medico"],citas_medicos[x][i]["especialidad"],citas_medicos[x][i]["fecha"],citas_medicos[x][i]["hora_inicial"],citas_medicos[x][i]["hora_final"],citas_medicos[x][i]["lugar"])
     else:
-        return render_template('') #Debo crear un templATE 
+        return render_template('erroragendamiento.html',cc=cc) #Debo crear un templATE 
 @app.route('/miscitas<cc>')
 def mis_citas(cc):
     mc=["""<container ><table border WIDTH="990" ><tr><th>Especialidad</th><th>Fecha</th> <th>Hora</th><th>Médico</th><th>Lugar</th><td></td> </tr>"""]
@@ -398,8 +425,12 @@ def añadir_citas2(medic):
     fecha=str(request.form['fecha'])
     horai=str(request.form['hora'])
     horaf=str(request.form['hora2'])
-    if horario_valido(medic,fecha,horai,horaf):
-        lugar=request.form['lugar'].strip().upper()
+    lugar=request.form['lugar'].strip().upper()
+    if horario_valido(medic,fecha,horai,horaf,lugar):
+        if fecha not in lugares:
+            lugares[lugar][fecha]=[{"inicio":horai,"fin":horaf}]
+        else:
+            lugares[lugar][fecha].append({"inicio":horai,"fin":horaf})
         nomape=personal_medico[medic][0]+" "+personal_medico[medic][1]
         datoscita={"fecha":fecha,"hora_final":horaf,"hora_inicial":horai,"lugar":lugar,"medico":nomape,"especialidad":personal_medico[medic][4],"paciente":None,"estado":True}
         citas_medicos[medic].append(datoscita)
@@ -470,17 +501,17 @@ def notamedica(medic):
 @app.route('/admin')      
 def home_admin():
     return render_template('admin.html') #Home Admin
-@app.route('/admin/cambiarcontraseña')
+@app.route('/admincambiarcontraseña')
 def cambio_contra_admin():
     return render_template('cambiarcontraadmin.html') #crear html que pida la contraseña actual
-@app.route('/admin/cambiarcontraseña/nuevacontraseña', methods=["POST","GET"])
+@app.route('/admin-cambiarcontraseña-nuevacontraseña', methods=["POST","GET"])
 def nueva_contraseña_admin():
     contra=request.form['contra']
     if contra==contraseñas["admin"]: 
         return render_template('cambiocontraadmin.html') #Pida contraseña y confirmar la contraseña
     else:
         return render_template('contraincorrectacambioadmin.html') #Que diga que la contraseña es incorrecta y tenga un boton que redirija a /cambiarcontraseñaadmin
-@app.route('/admin/cambiarcontraseña/cambiocontraseña', methods=["POST","GET"])
+@app.route('/admin-cambiarcontraseña-cambiocontraseña', methods=["POST","GET"])
 def contraseña_cambiada_admin():
     contra_nueva0=request.form['nueva']
     contra_nueva1=request.form['nueva2']
@@ -490,17 +521,17 @@ def contraseña_cambiada_admin():
     else:
         return render_template('cambiocontraadminincongruente.html') #Contraseñas incongruente, botoncito que regirija a /cambiarcontraseñaadmin
 #### cambiar contraseña usuario
-@app.route('/home_user<cc>/cambiarcontraseña')
+@app.route('/home_usercambiarcontraseña<cc>')
 def cambio_contra_user(cc):
     return render_template('cambiarcontrauser.html', cc=cc) #crear html que pida la contraseña actual
-@app.route('/home_user<cc>/cambiarcontraseña/nuevacontraseña', methods=["POST","GET"])
+@app.route('/home_usercambiarcontraseñanuevacontraseña<cc>', methods=["POST","GET"])
 def nueva_contraseña_user(cc):
     contra=request.form['contra']
     if contra==contraseñas[cc]: 
         return render_template('cambiocontrauser.html', cc=cc) #Pida contraseña y confirmar la contraseña
     else:
         return render_template('contraincorrectacambiouser.html', cc=cc) #Que diga que la contraseña es incorrecta y tenga un boton que redirija a /cambiarcontraseñaadmin
-@app.route('/home_user<cc>/cambiarcontraseña/cambiocontraseña', methods=["POST","GET"])
+@app.route('/home_usercambiarcontraseñacambiocontraseña<cc>', methods=["POST","GET"])
 def contraseña_cambiada_user(cc):
     contra_nueva0=request.form['nueva']
     contra_nueva1=request.form['nueva2']
@@ -510,17 +541,17 @@ def contraseña_cambiada_user(cc):
     else:
         return render_template('cambiocontrauserincongruente.html', cc=cc)
 # ####Cambio contraseña de medicos
-@app.route('/home_medic<medic>/cambiarcontraseña')
+@app.route('/home_mediccambiarcontraseña<medic>')
 def cambio_contra_medic(medic):
     return render_template('cambiarcontramedic.html', medic=medic) #crear html que pida la contraseña actual
-@app.route('/home_medic<medic>/cambiarcontraseña/nuevacontraseña', methods=["POST","GET"])
+@app.route('/home_mediccambiarcontraseñanuevacontraseña<medic>', methods=["POST","GET"])
 def nueva_contraseña_medic(medic):
     contra=request.form['contra']
     if contra==contra_medicos[medic]: 
         return render_template('cambiocontramedic.html', medic=medic) #Pida contraseña y confirmar la contraseña
     else:
         return render_template('contraincorrectacambiomedic.html', medic=medic) #Que diga que la contraseña es incorrecta y tenga un boton que redirija a /cambiarcontraseñaadmin
-@app.route('/home_medic<medic>/cambiarcontraseña/cambiocontraseña', methods=["POST","GET"])
+@app.route('/home_mediccambiarcontraseñacambiocontraseña<medic>', methods=["POST","GET"])
 def contraseña_cambiada_medic(medic):
     contra_nueva0=request.form['nueva']
     contra_nueva1=request.form['nueva2']
@@ -528,9 +559,9 @@ def contraseña_cambiada_medic(medic):
         contra_medicos[medic]=contra_nueva0
         return render_template('contraseñamediccambiada.html', medic=medic) #Que diga contraseña cambiada 
     else:
-        return render_template('cambiocontrauserincongruente.html', medic=medic)
+        return render_template('contramedicincongruente.html', medic=medic)
 ##
-@app.route('/validar_datos/validacion') #Aqui se validan los datos del registro
+@app.route('/validar_datos-validacion') #Aqui se validan los datos del registro
 def validar_datos2():
         nombre=request.args['nombres'].strip().upper()
         apellidos=request.args['apellidos'].strip().upper()
@@ -567,7 +598,7 @@ def crear_contraseña(cc):
 def añadirlugar():
     if request.method=="POST":
         lugar=request.form['lugar'].strip().upper()
-        lugares[lugar]=True
+        lugares[lugar]={}
         return render_template('lugarañadido.html').format(lugar)
     else:
         return render_template('añadirlugar.html')
@@ -579,7 +610,7 @@ def añadir_especialidad():
         return render_template('especialidadañadida.html').format(especialidad) #crear template que diga la especialidad x ha sido añadida
     else:
         return render_template('añadirespecialidad.html')#Crear template llamado añadir especialidad.html
-@app.route('/admin/crear_usuario')
+@app.route('/crear_usuario')
 def crear_usuario():
     return render_template('crearusuario.html')
 @app.route('/crear_medico')
@@ -615,7 +646,7 @@ def ver_datos():
         telefono=request.args['telefono'].strip()
         ciudad_residencia=request.args['ciudad'].strip().upper()
         residencia=request.args['direccion'].strip().upper()
-        if cc not in datos_personales:
+        if cc not in datos_personales :
             datos_personales[cc]=(nombre,apellidos,cc,sexo,fecha_nacimiento,telefono,ciudad_residencia,residencia)
             contraseñas[cc]=None
             historia_clinica[cc]={"peso":None,"altura":None,"antecedentes":[],"consultas":[]}
