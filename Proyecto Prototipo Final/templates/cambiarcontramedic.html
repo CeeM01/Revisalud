@@ -6,10 +6,10 @@
             <h1 >Cambio de contraseña</h1>
             <hr class="my-4">
             <p>Digite su actual contraseña para realizar el cambio</p>
-            <form action='/home_medic{{ medic }}/cambiarcontraseña/nuevacontraseña' method="POST">
+            <form action='/home_mediccambiarcontraseñanuevacontraseña{{ medic }}' method="POST">
             <p></p>
             <label for="contra">Contraseña: </label>
-            <input type="password" name="contra" minlength="4" maxlength="16">
+            <input type="password" name="contra" minlength="8" maxlength="16">
             <p></p>
             <input type='submit' value='Confirmar'>
             </form>
