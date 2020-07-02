@@ -4,13 +4,12 @@ html {
 body {
     margin: 0;
     height: 100%;
-    background-image: url(/static/images/medico.jpg);
+    background-image: url(/static/images/paciente.jpg);
     background-repeat: no-repeat;
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
 }
-
 
 .footer {
     background: linear-gradient(#6dd5ed, #1367b6);

@@ -1,19 +1,13 @@
-html {
+html{
     height: 100%;
 }
-body {
-    margin: 0;
+body{
     height: 100%;
-    background-image: url(/static/images/medico.jpg);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+    background: linear-gradient(to right, #6dd5ed, #08aed8);
 }
-
 
 .footer {
-    background: linear-gradient(#6dd5ed, #1367b6);
+    background:#2890ff;
     color: rgb(0, 0, 0);
     height:160px;
     position: relative;
@@ -33,7 +27,7 @@ body {
 .footer .footer-bottom {
     color: black;
     font-size: 0.8rem;
-    background-color: rgb(33, 132, 199);
+    background-color: #007bff;
     height: 19px;
     width: 100%;
     text-align: center;
